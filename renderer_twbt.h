@@ -33,6 +33,7 @@ struct renderer_cool : renderer_opengl
     bool needs_full_update;
     unsigned char *gscreen;
     float goff_y_gl;
+    float *gvertexesb, *gfgb, *gbgb, *gtexb;
 
     renderer_cool();
 

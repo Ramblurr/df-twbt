@@ -4,6 +4,7 @@ renderer_cool::renderer_cool()
 {
     dummy = 'TWBT';
     gvertexes = 0, gfg = 0, gbg = 0, gtex = 0;
+    gvertexesb = 0, gfgb = 0, gbgb = 0, gtexb = 0;
     gdimx = 0, gdimy = 0, gdimxfull = 0, gdimyfull = 0;
     gdispx = 0, gdispy = 0;
     goff_x = 0, goff_y = 0, gsize_x = 0, gsize_y = 0;
@@ -141,6 +142,18 @@ void renderer_cool::reshape_graphics()
     for (GLfloat x = 0; x < gdimx; x++)
         for (GLfloat y = 0; y < gdimy; y++, tile++)
             write_tile_vertexes(x, y, gvertexes + 6 * 2 * tile);
+
+    gvertexesb = (GLfloat*)realloc(gvertexesb, sizeof(GLfloat) * tiles * 2 * 6);
+    gfgb = (GLfloat*)realloc(gfgb, sizeof(GLfloat) * tiles * 4 * 6);
+    gbgb = (GLfloat*)realloc(gbgb, sizeof(GLfloat) * tiles * 4 * 6);
+    gtexb = (GLfloat*)realloc(gtexb, sizeof(GLfloat) * tiles * 2 * 6);
+
+    // Initialise vertex coords
+    tile = 0;   
+    for (GLfloat x = 0; x < gdimx; x++)
+        for (GLfloat y = 0; y < gdimy; y++, tile++)
+            write_tile_vertexes(x, y, gvertexesb + 6 * 2 * tile);
+
 
     needs_full_update = true;
 }
@@ -306,6 +319,15 @@ void renderer_cool::draw(int vertex_count)
             glDisableClientState(GL_TEXTURE_COORD_ARRAY);
             glDisable(GL_BLEND);
             glColorPointer(4, GL_FLOAT, 0, gbg);
+            //glDrawArrays(GL_TRIANGLES, 0, gdimx * gdimy * 6);
+
+            // Render foreground
+            glEnable(GL_TEXTURE_2D);
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glTexCoordPointer(2, GL_FLOAT, 0, gtexb);
+            glColorPointer(4, GL_FLOAT, 0, gfgb);
             glDrawArrays(GL_TRIANGLES, 0, gdimx * gdimy * 6);
 
             // Render foreground
@@ -316,6 +338,7 @@ void renderer_cool::draw(int vertex_count)
             glTexCoordPointer(2, GL_FLOAT, 0, gtex);
             glColorPointer(4, GL_FLOAT, 0, gfg);
             glDrawArrays(GL_TRIANGLES, 0, gdimx * gdimy * 6);
+
 
             if (multi_rendered)
                 glDisable(GL_FOG);

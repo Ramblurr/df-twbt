@@ -211,6 +211,8 @@ static uint8_t *mscreentexpos_grayscale;
 static uint8_t *mscreentexpos_cf;
 static uint8_t *mscreentexpos_cbr;
 
+static uint8_t bscreen[256*256*4];
+
 #include "tileupdate_text.hpp"
 #include "tileupdate_map.hpp"
 
@@ -312,6 +314,20 @@ static void patch_rendering(bool enable_lower_levels)
     else
         memcpy((void*)addr, patch, sizeof(patch));
 #endif
+}
+
+static void draw_building_xxx(long a, long b, long c)
+{
+    void (*draw_building)(long,long,long) = (void (*)(long,long,long))0x00107730;
+
+    uint8_t *z = gps->screen;
+    gps->screen = bscreen;
+    gps->screen_limit = gps->screen + gps->dimx * gps->dimy * 4;
+    
+    draw_building(a,b,c);
+    
+    gps->screen = z;
+    gps->screen_limit = gps->screen + gps->dimx * gps->dimy * 4;
 }
 
 static void replace_renderer()
@@ -420,6 +436,11 @@ static void replace_renderer()
         // Hero died
         p.write((void*)0x002cbf8d, nop6, 5);
         p.write((void*)(0x002cbf8d+5+3), nop6, 5);
+
+
+
+        long off = (long)&draw_building_xxx - 0x00108a5a;
+        //p.write((void*)(0x00108a55+1), &off, 4);
 
     #else
         #error Linux not supported yet

@@ -74,6 +74,103 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
     {
         const unsigned char *s = gscreen + tile*4;
         int s0 = s[0];
+//if (s0 == 22)
+  //  *out2 << (long*)s<<  " " << (long*) &world->buildings.other[buildings_other_id::IN_PLAY] << (long*) &world->items.other[items_other_id::IN_PLAY] << std::endl;
+
+
+        //if (s0 == 22)
+        {
+            int xx = gwindow_x + x;
+            int yy = gwindow_y + y;
+            int zz = gwindow_z - ((s[3]&0xf0)>>4);
+            df::map_block *block = world->map.block_index[xx>>4][yy>>4][zz];
+            if (block)
+            {
+                if (block->designation[xx&15][yy&15].bits.pile)
+                {
+                    const int tile = x * r->gdimy + y;
+                    GLfloat *_fg  = r->gfgb + tile * 4 * 6;
+                    GLfloat *_bg  = r->gbgb + tile * 4 * 6;
+                    GLfloat *_tex = r->gtexb + tile * 2 * 6;
+
+                    for (int i = 0; i < 6; i++) {
+                        *(_fg++) = enabler->ccolor[8][0];
+                        *(_fg++) = enabler->ccolor[8][1];
+                        *(_fg++) = enabler->ccolor[8][2];
+                        *(_fg++) = 1;
+                        
+                        *(_bg++) = 0;
+                        *(_bg++) = 0;
+                        *(_bg++) = 0;
+                        *(_bg++) = 1;
+                    }
+
+                    long texpos = map_texpos[61];
+
+                    gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
+                    *(_tex++) = txt[texpos].left;   // Upper left
+                    *(_tex++) = txt[texpos].bottom;
+                    *(_tex++) = txt[texpos].right;  // Upper right
+                    *(_tex++) = txt[texpos].bottom;
+                    *(_tex++) = txt[texpos].left;   // Lower left
+                    *(_tex++) = txt[texpos].top;
+                    
+                    *(_tex++) = txt[texpos].left;   // Lower left
+                    *(_tex++) = txt[texpos].top;
+                    *(_tex++) = txt[texpos].right;  // Upper right
+                    *(_tex++) = txt[texpos].bottom;
+                    *(_tex++) = txt[texpos].right;  // Lower right
+                    *(_tex++) = txt[texpos].top;
+
+
+                }
+                else if (block->tiletype[xx&15][yy&15] == df::tiletype::StoneFloorSmooth)
+                {
+                    const int tile = x * r->gdimy + y;
+                    GLfloat *_fg  = r->gfgb + tile * 4 * 6;
+                    GLfloat *_bg  = r->gbgb + tile * 4 * 6;
+                    GLfloat *_tex = r->gtexb + tile * 2 * 6;
+
+                    for (int i = 0; i < 6; i++) {
+                        *(_fg++) = enabler->ccolor[7][0];
+                        *(_fg++) = enabler->ccolor[7][1];
+                        *(_fg++) = enabler->ccolor[7][2];
+                        *(_fg++) = 1;
+                        
+                        *(_bg++) = 0;
+                        *(_bg++) = 0;
+                        *(_bg++) = 0;
+                        *(_bg++) = 1;
+                    }
+
+                    long texpos = map_texpos[43];
+
+                    gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
+                    *(_tex++) = txt[texpos].left;   // Upper left
+                    *(_tex++) = txt[texpos].bottom;
+                    *(_tex++) = txt[texpos].right;  // Upper right
+                    *(_tex++) = txt[texpos].bottom;
+                    *(_tex++) = txt[texpos].left;   // Lower left
+                    *(_tex++) = txt[texpos].top;
+                    
+                    *(_tex++) = txt[texpos].left;   // Lower left
+                    *(_tex++) = txt[texpos].top;
+                    *(_tex++) = txt[texpos].right;  // Upper right
+                    *(_tex++) = txt[texpos].bottom;
+                    *(_tex++) = txt[texpos].right;  // Lower right
+                    *(_tex++) = txt[texpos].top;
+                }
+                else
+                {
+                    const int tile = x * r->gdimy + y;
+                    GLfloat *_fg  = r->gfgb + tile * 4 * 6;
+                    GLfloat *_bg  = r->gbgb + tile * 4 * 6;
+                    memset(_fg, 0, sizeof(GLfloat)*6*4);
+                    memset(_bg, 0, sizeof(GLfloat)*6*4);
+                }
+            }
+        }
+
 
         if (overrides[s0])
         {
