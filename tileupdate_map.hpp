@@ -10,6 +10,119 @@ static void screen_to_texid_map(renderer_cool *r, int tile, struct texture_fulli
 
     if (!texpos)
     {
+        ret.tt = 0;
+        ret.texpos = map_texpos[s[0]];
+
+        ret.r = enabler->ccolor[fg][0];
+        ret.g = enabler->ccolor[fg][1];
+        ret.b = enabler->ccolor[fg][2];
+        ret.br = enabler->ccolor[bg][0];
+        ret.bg = enabler->ccolor[bg][1];
+        ret.bb = enabler->ccolor[bg][2];
+
+        return;
+    }        
+
+    ret.tt = 1;
+    ret.texpos = texpos;
+
+    if (gscreentexpos_grayscale[tile])
+    {
+        const unsigned char cf = gscreentexpos_cf[tile];
+        const unsigned char cbr = gscreentexpos_cbr[tile];
+
+        ret.r = enabler->ccolor[cf][0];
+        ret.g = enabler->ccolor[cf][1];
+        ret.b = enabler->ccolor[cf][2];
+        ret.br = enabler->ccolor[cbr][0];
+        ret.bg = enabler->ccolor[cbr][1];
+        ret.bb = enabler->ccolor[cbr][2];
+    }
+    else if (gscreentexpos_addcolor[tile])
+    {
+        ret.r = enabler->ccolor[fg][0];
+        ret.g = enabler->ccolor[fg][1];
+        ret.b = enabler->ccolor[fg][2];
+        ret.br = enabler->ccolor[bg][0];
+        ret.bg = enabler->ccolor[bg][1];
+        ret.bb = enabler->ccolor[bg][2];
+    }
+    else
+    {
+        ret.r = ret.g = ret.b = 1;
+        ret.br = ret.bg = ret.bb = 0;
+    }
+}
+
+static void screen_to_texid_map_c(renderer_cool *r, int tile, struct texture_fullid &ret)
+{
+    const unsigned char *s = gscreen + tile*4;
+
+    int bold = (s[3] & 0x0f) * 8;
+    int fg   = (s[1] + bold) % 16;
+    int bg   = s[2] % 16;
+
+    const long texpos = gscreentexpos[tile];
+
+    if (!texpos)
+    {
+        ret.tt = 0;
+        ret.texpos = map_texpos[s[0]];
+
+        ret.r = enabler->ccolor[fg][0];
+        ret.g = enabler->ccolor[fg][1];
+        ret.b = enabler->ccolor[fg][2];
+        ret.br = enabler->ccolor[bg][0];
+        ret.bg = enabler->ccolor[bg][1];
+        ret.bb = enabler->ccolor[bg][2];
+
+        return;
+    }        
+
+    ret.tt = 1;
+    ret.texpos = texpos;
+
+    if (gscreentexpos_grayscale[tile])
+    {
+        const unsigned char cf = gscreentexpos_cf[tile];
+        const unsigned char cbr = gscreentexpos_cbr[tile];
+
+        ret.r = enabler->ccolor[cf][0];
+        ret.g = enabler->ccolor[cf][1];
+        ret.b = enabler->ccolor[cf][2];
+        ret.br = enabler->ccolor[cbr][0];
+        ret.bg = enabler->ccolor[cbr][1];
+        ret.bb = enabler->ccolor[cbr][2];
+    }
+    else if (gscreentexpos_addcolor[tile])
+    {
+        ret.r = enabler->ccolor[fg][0];
+        ret.g = enabler->ccolor[fg][1];
+        ret.b = enabler->ccolor[fg][2];
+        ret.br = enabler->ccolor[bg][0];
+        ret.bg = enabler->ccolor[bg][1];
+        ret.bb = enabler->ccolor[bg][2];
+    }
+    else
+    {
+        ret.r = ret.g = ret.b = 1;
+        ret.br = ret.bg = ret.bb = 0;
+    }
+}
+
+static void screen_to_texid_map_b(renderer_cool *r, int tile, struct texture_fullid &ret)
+{
+    const unsigned char *s = bscreen + tile*4;
+
+    int bold = (s[3] & 0x0f) * 8;
+    int fg   = (s[1] + bold) % 16;
+    int bg   = s[2] % 16;
+
+    const long texpos = gscreentexpos[tile];
+
+    if (!texpos)
+    {
+        ret.tt = 0;
         ret.texpos = map_texpos[s[0]];
 
         ret.r = enabler->ccolor[fg][0];
@@ -23,6 +136,7 @@ static void screen_to_texid_map(renderer_cool *r, int tile, struct texture_fulli
     }        
 
     ret.texpos = texpos;
+    ret.tt = 1;
 
     if (gscreentexpos_grayscale[tile])
     {
@@ -58,16 +172,54 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
     const int tile = x * r->gdimy + y;        
     screen_to_texid_map(r, tile, ret);
 
-    for (int i = 0; i < 6; i++) {
-        *(fg++) = ret.r;
-        *(fg++) = ret.g;
-        *(fg++) = ret.b;
-        *(fg++) = 1;
-        
-        *(bg++) = ret.br;
-        *(bg++) = ret.bg;
-        *(bg++) = ret.bb;
-        *(bg++) = 1;
+    struct texture_fullid retb;
+    screen_to_texid_map_b(r, tile, retb);
+
+    struct texture_fullid retc;
+    screen_to_texid_map_c(r, tile, retc);
+
+
+    const unsigned char *sb = bscreen + tile*4;
+
+    GLfloat *_fg  = r->gfgb + tile * 4 * 6;
+    GLfloat *_bg  = r->gbgb + tile * 4 * 6;
+    GLfloat *_tex = r->gtexb + tile * 2 * 6;
+retc.tt = 0;
+
+    if (*sb)
+    {
+        for (int i = 0; i < 6; i++) {
+            *(_fg++) = ret.r;
+            *(_fg++) = ret.g;
+            *(_fg++) = ret.b;
+            *(_fg++) = 1;
+
+            *(fg++) = retb.r;
+            *(fg++) = retb.g;
+            *(fg++) = retb.b;
+            *(fg++) = 1;
+            
+            *(bg++) = retb.br;
+            *(bg++) = retb.bg;
+            *(bg++) = retb.bb;
+            *(bg++) = 1;
+        }
+    }
+    else
+    {
+        memset(_fg, 0, sizeof(GLfloat)*6*4);
+        memset(_bg, 0, sizeof(GLfloat)*6*4);        
+        for (int i = 0; i < 6; i++) {
+            *(fg++) = ret.r;
+            *(fg++) = ret.g;
+            *(fg++) = ret.b;
+            *(fg++) = 1;
+            
+            *(bg++) = ret.br;
+            *(bg++) = ret.bg;
+            *(bg++) = ret.bb;
+            *(bg++) = 1;
+        }        
     }
     
     if (has_overrides)
@@ -79,6 +231,7 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
 
 
         //if (s0 == 22)
+        if (0)
         {
             int xx = gwindow_x + x;
             int yy = gwindow_y + y;
@@ -277,7 +430,60 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
         }
     }
     matched:;
-    
+
+
+    if (*sb)
+    {
+        gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
+        {
+        *(_tex++) = txt[ret.texpos].left;   // Upper left
+        *(_tex++) = txt[ret.texpos].bottom;
+        *(_tex++) = txt[ret.texpos].right;  // Upper right
+        *(_tex++) = txt[ret.texpos].bottom;
+        *(_tex++) = txt[ret.texpos].left;   // Lower left
+        *(_tex++) = txt[ret.texpos].top;
+        
+        *(_tex++) = txt[ret.texpos].left;   // Lower left
+        *(_tex++) = txt[ret.texpos].top;
+        *(_tex++) = txt[ret.texpos].right;  // Upper right
+        *(_tex++) = txt[ret.texpos].bottom;
+        *(_tex++) = txt[ret.texpos].right;  // Lower right
+        *(_tex++) = txt[ret.texpos].top;
+
+        *(tex++) = txt[retb.texpos].left;   // Upper left
+        *(tex++) = txt[retb.texpos].bottom;
+        *(tex++) = txt[retb.texpos].right;  // Upper right
+        *(tex++) = txt[retb.texpos].bottom;
+        *(tex++) = txt[retb.texpos].left;   // Lower left
+        *(tex++) = txt[retb.texpos].top;
+        
+        *(tex++) = txt[retb.texpos].left;   // Lower left
+        *(tex++) = txt[retb.texpos].top;
+        *(tex++) = txt[retb.texpos].right;  // Upper right
+        *(tex++) = txt[retb.texpos].bottom;
+        *(tex++) = txt[retb.texpos].right;  // Lower right
+        *(tex++) = txt[retb.texpos].top;        
+    }
+
+{
+        *(tex++) = txt[ret.texpos].left;   // Upper left
+        *(tex++) = txt[ret.texpos].bottom;
+        *(tex++) = txt[ret.texpos].right;  // Upper right
+        *(tex++) = txt[ret.texpos].bottom;
+        *(tex++) = txt[ret.texpos].left;   // Lower left
+        *(tex++) = txt[ret.texpos].top;
+        
+        *(tex++) = txt[ret.texpos].left;   // Lower left
+        *(tex++) = txt[ret.texpos].top;
+        *(tex++) = txt[ret.texpos].right;  // Upper right
+        *(tex++) = txt[ret.texpos].bottom;
+        *(tex++) = txt[ret.texpos].right;  // Lower right
+        *(tex++) = txt[ret.texpos].top;    
+    }
+    }
+    else
+    {
+
     // Set texture coordinates
     gl_texpos *txt = (gl_texpos*) enabler->textures.gl_texpos;
     *(tex++) = txt[ret.texpos].left;   // Upper left
@@ -293,4 +499,5 @@ static void write_tile_arrays_map(renderer_cool *r, int x, int y, GLfloat *fg, G
     *(tex++) = txt[ret.texpos].bottom;
     *(tex++) = txt[ret.texpos].right;  // Lower right
     *(tex++) = txt[ret.texpos].top;
+}
 }

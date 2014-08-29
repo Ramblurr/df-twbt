@@ -52,6 +52,8 @@ struct dwarfmode_hook : public df::viewscreen_dwarfmodest
         gwindow_y = *df::global::window_y;
         gwindow_z = *df::global::window_z;
 
+        memset(bscreen, 0, 256*256*4);
+
         //clock_t c1 = clock();
         INTERPOSE_NEXT(render)();
 

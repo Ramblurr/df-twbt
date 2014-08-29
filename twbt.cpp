@@ -61,6 +61,7 @@
 #include "df/world_raws.h"
 #include "df/building.h"
 #include "df/building_workshopst.h"
+#include "df/building_doorst.h"
 #include "df/building_def_workshopst.h"
 #include "df/building_type.h"
 #include "df/buildings_other_id.h"
@@ -99,6 +100,7 @@ struct texture_fullid {
     unsigned int texpos;
     float r, g, b;
     float br, bg, bb;
+    bool tt;
 };
 
 struct gl_texpos {
@@ -320,15 +322,90 @@ static void draw_building_xxx(long a, long b, long c)
 {
     void (*draw_building)(long,long,long) = (void (*)(long,long,long))0x00107730;
 
-    uint8_t *z = gps->screen;
+    /*uint8_t *z = gps->screen;
     gps->screen = bscreen;
     gps->screen_limit = gps->screen + gps->dimx * gps->dimy * 4;
-    
-    draw_building(a,b,c);
-    
-    gps->screen = z;
-    gps->screen_limit = gps->screen + gps->dimx * gps->dimy * 4;
+    */
+    df::building *bb = (df::building*)a;
+    df::building_type t = bb->getType();
+    //*out2 << t << " " << bb->x1 << " " << bb->x2 << std::endl;
+if (t != df::building_type::Stockpile && t != df::building_type::Bridge)
+{
+
+    //draw_building(a,b,c);
+
+    //int xx = gwindow_x + x;
+    //int yy = gwindow_y + y;
+    //int zz = gwindow_z - ((s[3]&0xf0)>>4);
+    renderer_cool *r = (renderer_cool*)enabler->renderer;
+    for (int x = bb->x1 - gwindow_x; x <= bb->x2 - gwindow_x; x++)
+    {
+        for (int y = bb->y1 - gwindow_y; y <= bb->y2 - gwindow_y; y++)
+        {
+            if (x < 0 || y < 0)
+                continue;
+            const int tile = x * r->gdimy + y, stile = tile * 4;
+            *((long*)bscreen + tile) = *((long*)gscreen + tile);
+            //*((long*)gscreen + tile) = 0x01030234;
+        }
+    }
 }
+    draw_building(a,b,c);
+    //gps->screen = z;
+    //gps->screen_limit = gps->screen + gps->dimx * gps->dimy * 4;
+}
+
+static void addchar_xxx()
+{
+    int c, adv;
+
+    asm (
+        "mov %%eax, %0\n"
+        "mov %%edx, %1\n"
+        :"=r"(c),"=r"(adv)
+    );
+
+renderer_cool *r = (renderer_cool*)enabler->renderer;
+
+        *out2 << c<< " " << adv << std::endl;
+    if (c != 43 && c != 44 && c != 46 && c != 32 && c != 186 && c != 205 && c != 187 && c != 188 && c != 200 && c != 201 && c != 204 && c != 206 && c != 203 && c != 202 && c != 185)
+    {
+        const int tile = (gps->screenx-1) * r->gdimy + (gps->screeny-1), stile = tile * 4;
+        if (!*((long*)bscreen + tile))
+            *((long*)bscreen + tile) = *((long*)gscreen + tile);
+    }
+
+    unsigned char *s = r->screen + gps->screenx*gps->dimy*4 + gps->screeny*4;
+    if (s < gps->screen_limit) {
+    if(gps->screenx>=gps->clipx[0]&&gps->screenx<=gps->clipx[1]&&
+        gps->screeny>=gps->clipy[0]&&gps->screeny<=gps->clipy[1])
+        {
+                    *s++ = c;
+                    *s++ = gps->screenf;
+                    *s++ = gps->screenb;
+                    *s++ = gps->screenbright;
+                    r->screentexpos[gps->screenx*gps->dimy + gps->screeny]=0;
+    }
+                  }
+                  gps->screenx += adv;
+
+}
+
+struct building_xxx : public df::building_doorst
+{
+    typedef df::building_doorst interpose_base;
+
+    DEFINE_VMETHOD_INTERPOSE(void, drawBuilding, (df::building_drawbuffer*, int16_t))
+    {
+        //*out2 << "!" << std::endl;
+        //int x = this->x1 - gwindow_x;
+        //int y = this->y1 - gwindow_y;
+
+    }
+};
+
+IMPLEMENT_VMETHOD_INTERPOSE(building_xxx, drawBuilding);
+
 
 static void replace_renderer()
 {
@@ -440,7 +517,12 @@ static void replace_renderer()
 
 
         long off = (long)&draw_building_xxx - 0x00108a5a;
-        //p.write((void*)(0x00108a55+1), &off, 4);
+        p.write((void*)(0x00108a55+1), &off, 4);
+
+
+        off = (long)&addchar_xxx - (0x83b310+5);
+        *(unsigned char*)(0x83b310+0) = 0xe9;
+        p.write((void*)(0x83b310+1), &off, 4);
 
     #else
         #error Linux not supported yet
@@ -491,6 +573,8 @@ static void replace_renderer()
         #error Linux not supported yet
     #endif        
 #endif
+
+    //INTERPOSE_HOOK(building_xxx, drawBuilding).apply(true);
 
     enabled = true;   
 }

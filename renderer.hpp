@@ -319,15 +319,6 @@ void renderer_cool::draw(int vertex_count)
             glDisableClientState(GL_TEXTURE_COORD_ARRAY);
             glDisable(GL_BLEND);
             glColorPointer(4, GL_FLOAT, 0, gbg);
-            //glDrawArrays(GL_TRIANGLES, 0, gdimx * gdimy * 6);
-
-            // Render foreground
-            glEnable(GL_TEXTURE_2D);
-            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glTexCoordPointer(2, GL_FLOAT, 0, gtexb);
-            glColorPointer(4, GL_FLOAT, 0, gfgb);
             glDrawArrays(GL_TRIANGLES, 0, gdimx * gdimy * 6);
 
             // Render foreground
@@ -339,6 +330,14 @@ void renderer_cool::draw(int vertex_count)
             glColorPointer(4, GL_FLOAT, 0, gfg);
             glDrawArrays(GL_TRIANGLES, 0, gdimx * gdimy * 6);
 
+            // Render foreground
+            glEnable(GL_TEXTURE_2D);
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glTexCoordPointer(2, GL_FLOAT, 0, gtexb);
+            glColorPointer(4, GL_FLOAT, 0, gfgb);
+            glDrawArrays(GL_TRIANGLES, 0, gdimx * gdimy * 6);
 
             if (multi_rendered)
                 glDisable(GL_FOG);
@@ -576,7 +575,7 @@ void renderer_cool::display_new(bool update_graphics)
     // Update map tiles is current screen has a map
     if (update_graphics)
     {
-        if (needs_full_update)
+        if (1||needs_full_update)
         {
             needs_full_update = false;
 
