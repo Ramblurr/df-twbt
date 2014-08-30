@@ -464,22 +464,6 @@ retc.tt = 0;
         *(tex++) = txt[retb.texpos].right;  // Lower right
         *(tex++) = txt[retb.texpos].top;        
     }
-
-{
-        *(tex++) = txt[ret.texpos].left;   // Upper left
-        *(tex++) = txt[ret.texpos].bottom;
-        *(tex++) = txt[ret.texpos].right;  // Upper right
-        *(tex++) = txt[ret.texpos].bottom;
-        *(tex++) = txt[ret.texpos].left;   // Lower left
-        *(tex++) = txt[ret.texpos].top;
-        
-        *(tex++) = txt[ret.texpos].left;   // Lower left
-        *(tex++) = txt[ret.texpos].top;
-        *(tex++) = txt[ret.texpos].right;  // Upper right
-        *(tex++) = txt[ret.texpos].bottom;
-        *(tex++) = txt[ret.texpos].right;  // Lower right
-        *(tex++) = txt[ret.texpos].top;    
-    }
     }
     else
     {

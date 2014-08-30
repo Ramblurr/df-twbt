@@ -367,7 +367,7 @@ static void addchar_xxx()
 
 renderer_cool *r = (renderer_cool*)enabler->renderer;
 
-        *out2 << c<< " " << adv << std::endl;
+//        *out2 << c<< " " << adv << std::endl;
     if (c != 43 && c != 44 && c != 46 && c != 32 && c != 186 && c != 205 && c != 187 && c != 188 && c != 200 && c != 201 && c != 204 && c != 206 && c != 203 && c != 202 && c != 185)
     {
         const int tile = (gps->screenx-1) * r->gdimy + (gps->screeny-1), stile = tile * 4;
