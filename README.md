@@ -33,6 +33,25 @@ Vitaly Pronkin aka mifki <pronvit@me.com>
 
 [Home Page / Sources](https://github.com/mifki/df-twbt) -- [Latest Release](https://github.com/mifki/df-twbt/releases) -- [Development Builds](http://build.mifki.com) -- [Discussion](http://www.bay12forums.com/smf/index.php?topic=138754.0) -- [Report an Issue](https://github.com/mifki/df-twbt/issues)
 
+## Building & Installing ##
+
+If you use an installation package or a version of TWBT bundled with DF, ignore
+this section.
+
+If you want to build DFHack and TWBT yourself, use this.
+
+First, compile DFHack. Building TWBT requires a functioning DFHack dev environment.
+
+1. Build TWBT with: `DFHACKVER=0.40.19-r1 DF=/your/path/to/df_linux DH=/your/path/to/dfhack make
+2. Install the plugins with: `DFHACKVER=0.40.19-r1 DF=/your/path/to/df_linux DH=/your/path/to/dfhack make
+3. Copy over additional files:
+    ```
+    cp dist/*png $DF/data/art/
+    cp dist/overrides.txt $DF/data/init/
+    ```
+4. Use TWBT compatible tileset.
+    Included is Spacefox: edit data/init/init.txt to use Spacefox_16x16_text.png
+
 ## Text and Map Tilesets ##
 
 Main function is to use separate fonts (tilesets) for map tiles in Fortress Mode and for text. These fonts may have different tile size, usually square for the map and non-square for text. There also no limit of minimum 80 columns anymore, so bigger tiles can be used on small screens.
